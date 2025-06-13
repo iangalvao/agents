@@ -1,6 +1,5 @@
-import pytest
-from project.tools.tests.test_dir_from_tree import dir_from_tree
-import os
+import pytest  # type: ignore #VSCODE broken paths
+from tools.dir_from_tree import parse_tree  # type: ignore #VSCODE broken paths
 
 
 @pytest.fixture
@@ -42,8 +41,6 @@ def expected_structure():
 
 
 def test_parse_tree(sample_tree, expected_structure):
-    from project.tools.dir_from_tree import parse_tree
-
     tree_dict = parse_tree(sample_tree)
     assert (
         tree_dict == expected_structure
