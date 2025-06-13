@@ -1,11 +1,10 @@
 # agent_core/code_agent.py
 
 from functools import partial
-from langchain_core.messages import HumanMessage, AIMessage  # type: ignore
+from langchain_core.messages import HumanMessage  # type: ignore
 from langgraph.graph import StateGraph, END  # type: ignore
 from tools.repl import execute_python  # type: ignore
 from models.provider import get_llm  # type: ignore
-
 from typing import List, Optional
 from pydantic import BaseModel
 

@@ -1,0 +1,8 @@
+2025-06-13 18:19:47,338 - INFO - Received prompt from openai
+2025-06-13 18:19:48,284 - INFO - Graph invocation successful for openai
+2025-06-13 18:19:48,284 - INFO - [Prompt] Print Hello World
+2025-06-13 18:19:48,284 - INFO - [Attempt #1] Code:
+print("Hello World")
+2025-06-13 18:19:48,284 - INFO - [Attempt #1] Result:
+Hello World
+2025-06-13 18:19:48,284 - INFO - Session test1 completed with 1 attempt(s).

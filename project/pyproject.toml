@@ -13,6 +13,7 @@ python-dotenv = "^1.1.0"
 langchain-community = "^0.3.25"
 openai = "^1.86.0"
 langchain-openai = "^0.3.23"
+Flask = "^3.1.1"
 
 [tool.poetry.dev-dependencies]
 mlflow = "^3.1.0"
