@@ -1,0 +1,4 @@
+{"id": "math_avg", "prompt": "Calculate the average of 45, 67, and 89", "result":"67.0"}
+{"id": "string_title", "prompt": "Capitalize the first letter of each word in 'hello world' and print the result.", "result":"Hello World"}
+{"id": "json_parse", "prompt": "Parse the following JSON string: '{\"name\": \"John\", \"age\": 30}' and print the result", "result": "{'name': 'John', 'age': 30}"}
+{"id": "regex_match", "prompt": "Use regex to find all email addresses in the string 'Contact us at info@example.com for more information.' and print the result.", "result":"['info@example.com']"}

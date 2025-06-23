@@ -1,13 +1,13 @@
 # agent_core/code_agent.py
 
 from functools import partial
-from langchain_core.messages import HumanMessage, AIMessage  # type: ignore
+from langchain_core.messages import HumanMessage  # type: ignore
 from langgraph.graph import StateGraph, END  # type: ignore
 from tools.repl import execute_python  # type: ignore
 from models.provider import get_llm  # type: ignore
 
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel  # type: ignore
 
 
 class CodeAttempt(BaseModel):
@@ -93,7 +93,7 @@ def build_graph(
     llm_provider: str = "openai",
     model: str = "gpt-4",
     temperature: float = 0.3,
-) -> StateGraph:
+):
     """
     Build the state graph for the code generation and execution workflow.
     Args:
@@ -119,7 +119,7 @@ def build_graph(
     workflow.set_entry_point("generate_code")
     workflow.add_edge("generate_code", "execute_code")
 
-    def decide_next(state: REPLState):
+    def decide_next(state: REPLState, max_retries=max_retries):
         if state.retry:
             state.retries += 1
         if state.retry and state.retries < max_retries:

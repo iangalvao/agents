@@ -1,6 +1,6 @@
-from tools.repl_service.repl_agent.code_agent import build_graph, REPLState
-from tools.repl_service.repl_agent.logger import log_attempt, logger
-from tools.repl_service.repl_agent.storage import save_session
+from services.repl_service.repl_agent.code_agent import build_graph, REPLState
+from services.repl_service.repl_agent.logger import log_attempt, logger
+from services.repl_service.repl_agent.storage import save_session
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
@@ -11,10 +11,13 @@ It defines a POST endpoint `/run` that accepts a user prompt, processes it throu
 
 
 app = FastAPI()
+openai_model = "gpt-4o-mini"
 
 try:
     graphs = {
-        "openai": build_graph(llm_provider="openai", model="gpt-4", temperature=0.3),
+        "openai": build_graph(
+            llm_provider="openai", model=openai_model, temperature=0.3
+        ),
         "deepseek": build_graph(
             llm_provider="deepseek", model="deepseek-chat", temperature=0.3
         ),

@@ -1,12 +1,14 @@
 # agent_core/code_agent.py
 
 from functools import partial
-from langchain_core.messages import HumanMessage  # type: ignore
-from langgraph.graph import StateGraph, END  # type: ignore
+from langchain_core.messages import HumanMessage
+from langgraph.graph import StateGraph, END
 from tools.repl import execute_python  # type: ignore
 from models.provider import get_llm  # type: ignore
 from typing import List, Optional
 from pydantic import BaseModel
+
+from models.cloud_openai import call_openai  # type: ignore
 
 
 class CodeAttempt(BaseModel):
@@ -14,6 +16,22 @@ class CodeAttempt(BaseModel):
     generated_code: str
     result: Optional[str]
     error: Optional[str]
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_cost: Optional[float] = 0.0
+    latency: Optional[float] = 0.0
+
+    def to_dict(self):
+        return {
+            "attempt_number": self.attempt_number,
+            "generated_code": self.generated_code,
+            "result": self.result,
+            "error": self.error,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "total_cost": self.total_cost,
+            "latency": self.latency,
+        }
 
 
 class REPLState(BaseModel):
@@ -26,6 +44,34 @@ class REPLState(BaseModel):
         """Get a value from the state, returning default if not found."""
         return getattr(self, key, default)
 
+    def get_total_cost(self) -> float:
+        """Calculate the total cost of all attempts."""
+        return sum(
+            attempt.total_cost for attempt in self.attempts if attempt.total_cost
+        )
+
+    def get_total_tokens(self) -> int:
+        """Calculate the total number of tokens used across all attempts."""
+        return sum(
+            attempt.input_tokens + attempt.output_tokens for attempt in self.attempts
+        )
+
+    def get_total_latency(self) -> float:
+        """Calculate the total latency of all attempts."""
+        return sum(attempt.latency for attempt in self.attempts if attempt.latency)
+
+    def get_total_input_tokens(self) -> int:
+        """Calculate the total input tokens used across all attempts."""
+        return sum(
+            attempt.input_tokens for attempt in self.attempts if attempt.input_tokens
+        )
+
+    def get_total_output_tokens(self) -> int:
+        """Calculate the total output tokens used across all attempts."""
+        return sum(
+            attempt.output_tokens for attempt in self.attempts if attempt.output_tokens
+        )
+
 
 def generate_code(state: REPLState, llm) -> REPLState:
     prompt = state.user_prompt
@@ -36,7 +82,7 @@ def generate_code(state: REPLState, llm) -> REPLState:
 
     system_msg = (
         "You are a Python code generator. Write minimal working code to solve the user's request.\n"
-        "Do NOT explain — only output the code block."
+        "Do NOT explain — only output the code block. Dont write any markdown or comments, only code.\n"
     )
     messages = [
         {"role": "system", "content": system_msg},
@@ -54,13 +100,22 @@ def generate_code(state: REPLState, llm) -> REPLState:
 
     response = llm.invoke([HumanMessage(content=m["content"]) for m in messages])
     attempt_number = state.retries + 1
-    generated_code = response.content.strip()
+
+    response = call_openai(
+        prompt=[HumanMessage(content=m["content"]) for m in messages],
+        llm=llm,
+    )
+
     state.attempts.append(
         CodeAttempt(
             attempt_number=attempt_number,
-            generated_code=generated_code,
+            generated_code=response.content,
             result=None,
             error=None,
+            input_tokens=response.input_tokens,
+            output_tokens=response.output_tokens,
+            total_cost=response.total_cost,
+            latency=response.latency,
         )
     )
     return state
@@ -90,9 +145,9 @@ def execute_code(state: REPLState) -> REPLState:
 def build_graph(
     max_retries: int = 2,
     llm_provider: str = "openai",
-    model: str = "gpt-4",
+    model: str = "gpt-4o-mini",
     temperature: float = 0.3,
-) -> StateGraph:
+):
     """
     Build the state graph for the code generation and execution workflow.
     Args:
