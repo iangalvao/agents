@@ -1,4 +1,4 @@
-from services.repl_service.repl_agent.code_agent import build_graph, REPLState
+from agent_core.code_agent import build_graph, REPLState
 from services.repl_service.repl_agent.logger import log_attempt, logger
 from services.repl_service.repl_agent.storage import save_session
 from fastapi import FastAPI
