@@ -13,11 +13,21 @@ from langchain_core.messages import HumanMessage
 
 from models.wrapped_response import LLMResponseWrapper
 from pydantic import SecretStr
+from models.models import load_models
 
 load_dotenv()
+MODELS = load_models(provider="openai")  # Load models.json from the current directory
+MODELS_NAMES = {k for k in MODELS.keys()}
+COST_PER_1M = {k: v.get("cost1M", [0.0, 0.0]) for k, v in MODELS.items()}
+print("Loaded OpenAI models:", MODELS.keys())
+print("Cost per 1M tokens:", COST_PER_1M)
 
 
 def get_openai_llm(model: str = "gpt-4o-mini", temperature: float = 0.3) -> ChatOpenAI:
+    if model not in MODELS_NAMES:
+        raise ValueError(
+            f"Model '{model}' is not supported. Available models: {', '.join(MODELS_NAMES)}"
+        )
     api_key = SecretStr(os.getenv("OPENAI_API_KEY") or "")
     if not api_key:
         raise ValueError("OPENAI_API_KEY is not set in the environment")
@@ -46,22 +56,7 @@ def call_openai(
     input_tokens = usage.get("prompt_tokens", 0)
     output_tokens = usage.get("completion_tokens", 0)
 
-    # OpenAI pricing (2024)
-    cost_per_1M = {
-        "gpt-4.1": (2.00, 8.0),
-        "gpt-4.1-mini": (0.40, 1.6),
-        "gpt-4.5-preview": (75.0, 150.0),
-        "gpt-4o": (2.50, 10.0),
-        "gpt-4o-mini": (0.15, 0.60),
-        "o1-pro": (150.0, 600.0),
-        "o1-mini": (1.10, 4.40),
-        "o3": (2.00, 8.00),
-        "o3-pro": (20.00, 80.0),
-        "o3-mini": (1.10, 4.40),
-        "o4-mini": (1.10, 4.40),
-        "computer-use-preview": (3.0, 12.0),
-    }
-    pricing = cost_per_1M.get(model_name, (0.0, 0.0))
+    pricing = COST_PER_1M.get(model_name, (0.0, 0.0))
     cost = (input_tokens / 1000000 * pricing[0]) + (
         output_tokens / 1000000 * pricing[1]
     )
