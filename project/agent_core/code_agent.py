@@ -9,6 +9,8 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from models.cloud_openai import call_openai
+from models.cloud_deepseek import call_deepseek
+from models.wrapped_response import LLMResponseWrapper
 
 
 class CodeAttempt(BaseModel):
@@ -73,7 +75,7 @@ class REPLState(BaseModel):
         )
 
 
-def generate_code(state: REPLState, llm) -> REPLState:
+def generate_code(state: REPLState, llm, provider="openai") -> REPLState:
     prompt = state.user_prompt
     previous_error = state.get("attempts", [])[-1].error if state.attempts else None
 
@@ -92,19 +94,26 @@ def generate_code(state: REPLState, llm) -> REPLState:
         messages.append(
             {
                 "role": "user",
-                "content": f"The previous code failed with this error:\n{previous_error}.\nPlease fix it.",
+                "content": f"The previous code failed with this error:\n{previous_error}.\nPlease fix it. This is your previous code:\n{state.attempts[-1].generated_code}",
             }
         )
 
     print("Generating code with messages:", messages)
 
-    response = llm.invoke([HumanMessage(content=m["content"]) for m in messages])
+    # response = llm.invoke([HumanMessage(content=m["content"]) for m in messages])
     attempt_number = state.retries + 1
-
-    response = call_openai(
-        prompt=[HumanMessage(content=m["content"]) for m in messages],
-        llm=llm,
-    )
+    if provider == "deepseek":
+        response: LLMResponseWrapper = call_deepseek(
+            prompt=[HumanMessage(content=m["content"]) for m in messages],
+            llm=llm,
+        )
+    elif provider == "openai":
+        response: LLMResponseWrapper = call_openai(
+            prompt=[HumanMessage(content=m["content"]) for m in messages],
+            llm=llm,
+        )
+    else:
+        raise ValueError(f"Unsupported LLM provider: {provider}")
 
     state.attempts.append(
         CodeAttempt(
@@ -135,6 +144,10 @@ def execute_code(state: REPLState) -> REPLState:
     if isinstance(result, str) and result.startswith("[ERROR]"):
         attempt.error = result
         state.retry = True
+        state.retries += 1
+        print(
+            f"Error in code execution: {result}. Marked to retry. Current retry count: {state.retries}"
+        )
     else:
         attempt.result = result
         state.retry = False
@@ -166,7 +179,7 @@ def build_graph(
 
     workflow = StateGraph(REPLState)  # <-- Use plain dict
 
-    generate_code_with_llm = partial(generate_code, llm=llm)
+    generate_code_with_llm = partial(generate_code, llm=llm, provider=llm_provider)
     workflow.add_node("generate_code", generate_code_with_llm)
     workflow.add_node("execute_code", execute_code)
 
@@ -174,9 +187,11 @@ def build_graph(
     workflow.add_edge("generate_code", "execute_code")
 
     def decide_next(state: REPLState):
-        if state.retry:
-            state.retries += 1
         if state.retry and state.retries < max_retries:
+            state.retry = False
+            print(
+                f"Retrying code generation, attempt {state.retries + 1}/{max_retries}"
+            )
             return "generate_code"
         return END
 

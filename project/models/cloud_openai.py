@@ -44,8 +44,7 @@ def call_openai(
 ) -> LLMResponseWrapper:
     model_name = llm.model_name  # Get the model name from the LLM instance
     print("Using OpenAI LLM with model:", model_name, "and temperature:", temperature)
-    if not model_name:
-        raise ValueError("Model must be specified in the OpenAI LLM instance")
+
     start = time.time()
     response = llm.invoke(prompt)
     end = time.time()

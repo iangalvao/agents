@@ -13,7 +13,8 @@ PROMPTS_PATH = Path("services/repl_service/benchmarks/prompts.jsonl")
 RESULTS_DIR = Path("services/repl_service/benchmarks/results")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-model = "gpt-4o-mini"  # Default model, can be overridden by environment variable
+provider = "deepseek"  # Default provider, can be overridden by environment variable
+model = "deepseek-chat"  # Default model, can be overridden by environment variable
 
 
 def format_output(
@@ -86,7 +87,7 @@ with open(PROMPTS_PATH, "r") as f:
     prompts = [json.loads(line) for line in f]
 
 # Set LLM provider
-os.environ["LLM_PROVIDER"] = "openai"  # or "anthropic", "deepseek", etc.
+os.environ["LLM_PROVIDER"] = provider  # or "anthropic", "deepseek", etc.
 os.environ["LLM_MODEL"] = (
     model  # Default model, can be overridden by environment variable
 )
