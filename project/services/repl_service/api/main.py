@@ -4,7 +4,6 @@ from services.repl_service.repl_agent.storage import save_session
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-import os
 
 """This module sets up a FastAPI application that provides an endpoint to run a REPL agent.
 It defines a POST endpoint `/run` that accepts a user prompt, processes it through a state graph, and logs the attempts made to generate code based on the prompt. The results are saved in a session file."""

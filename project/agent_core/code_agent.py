@@ -3,12 +3,12 @@
 from functools import partial
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, END
-from tools.repl import execute_python  # type: ignore
-from models.provider import get_llm  # type: ignore
+from tools.repl import execute_python
+from models.provider import get_llm
 from typing import List, Optional
 from pydantic import BaseModel
 
-from models.cloud_openai import call_openai  # type: ignore
+from models.cloud_openai import call_openai
 
 
 class CodeAttempt(BaseModel):

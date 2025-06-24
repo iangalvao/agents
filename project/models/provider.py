@@ -1,7 +1,7 @@
 # models/provider.py
 
-from models.cloud_openai import get_openai_llm  # type: ignore
-from models.cloud_deepseek import get_deepseek_llm  # type: ignore
+from models.cloud_openai import get_openai_llm
+from models.cloud_deepseek import get_deepseek_llm
 
 """This module provides a function to get an LLM instance based on the specified provider.
 It supports OpenAI and DeepSeek as providers, allowing customization of the model and temperature.

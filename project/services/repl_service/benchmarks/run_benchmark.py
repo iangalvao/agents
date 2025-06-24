@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 # import mlflow
-from agent_core.code_agent import build_graph, CodeAttempt, REPLState  # type: ignore
+from agent_core.code_agent import build_graph, CodeAttempt, REPLState
 
 # Paths
 PROMPTS_PATH = Path("services/repl_service/benchmarks/prompts.jsonl")

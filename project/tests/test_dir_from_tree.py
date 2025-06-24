@@ -1,5 +1,5 @@
-import pytest  # type: ignore #VSCODE broken paths
-from tools.dir_from_tree import parse_tree  # type: ignore #VSCODE broken paths
+import pytest  # VSCODE broken paths
+from tools.dir_from_tree import parse_tree  # VSCODE broken paths
 
 
 @pytest.fixture

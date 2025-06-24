@@ -1,9 +1,9 @@
 # models/cloud_deepseek.py
 
 import os
-from langchain_openai import ChatOpenAI  # type: ignore
+from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-from pydantic import SecretStr  # type: ignore
+from pydantic import SecretStr
 
 """
 This module provides a function to create a DeepSeek LLM instance with specified parameters.

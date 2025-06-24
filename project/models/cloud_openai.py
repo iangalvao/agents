@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 
-from models.wrapped_response import LLMResponseWrapper  # type: ignore
+from models.wrapped_response import LLMResponseWrapper
 from pydantic import SecretStr
 
 load_dotenv()

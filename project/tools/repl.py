@@ -4,7 +4,7 @@ import io
 import sys
 import traceback
 from contextlib import redirect_stdout
-from langchain.tools import tool  # type: ignore
+from langchain.tools import tool
 
 
 @tool
