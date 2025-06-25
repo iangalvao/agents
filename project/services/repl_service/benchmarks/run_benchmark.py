@@ -8,9 +8,45 @@ from pathlib import Path
 # import mlflow
 from agent_core.code_agent import build_graph, CodeAttempt, REPLState
 
-# Paths
-PROMPTS_PATH = Path("services/repl_service/benchmarks/prompts.jsonl")
-RESULTS_DIR = Path("services/repl_service/benchmarks/results")
+# Ensure the script is running from the project root directory
+# and that the necessary directories exist.
+# This script is designed to run benchmarks for the REPL agent using LangGraph.
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # Adjust as needed
+if not PROJECT_ROOT.exists():
+    raise FileNotFoundError(f"Project root not found at {PROJECT_ROOT}")
+# Ensure the project root is a valid directory
+if not PROJECT_ROOT.is_dir():
+    raise NotADirectoryError(f"Project root is not a directory: {PROJECT_ROOT}")
+# Ensure the script is running from the project root
+if not PROJECT_ROOT.name == "project":
+    raise RuntimeError(
+        f"Script must be run from the project root directory, found: {PROJECT_ROOT.name}"
+    )
+# Ensure the services directory exists
+SERVICES_DIR = PROJECT_ROOT / "services"
+if not SERVICES_DIR.exists():
+    raise FileNotFoundError(f"Services directory not found at {SERVICES_DIR}")
+if not SERVICES_DIR.is_dir():
+    raise NotADirectoryError(f"Services path is not a directory: {SERVICES_DIR}")
+# Ensure the repl_service directory exists
+REPL_SERVICE_DIR = SERVICES_DIR / "repl_service"
+if not REPL_SERVICE_DIR.exists():
+    raise FileNotFoundError(f"REPL service directory not found at {REPL_SERVICE_DIR}")
+if not REPL_SERVICE_DIR.is_dir():
+    raise NotADirectoryError(
+        f"REPL service path is not a directory: {REPL_SERVICE_DIR}"
+    )
+# Ensure the project root is in the Python path
+if str(PROJECT_ROOT) not in os.sys.path:
+    os.sys.path.append(str(PROJECT_ROOT))
+# Load prompts and results paths
+PROMPTS_PATH = (
+    PROJECT_ROOT / "services" / "repl_service" / "benchmarks" / "prompts.jsonl"
+)
+if not PROMPTS_PATH.exists():
+    raise FileNotFoundError(f"Prompts file not found at {PROMPTS_PATH}")
+RESULTS_DIR = PROJECT_ROOT / "services" / "repl_service" / "benchmarks" / "results"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 provider = "deepseek"  # Default provider, can be overridden by environment variable
@@ -18,6 +54,8 @@ model = "deepseek-chat"  # Default model, can be overridden by environment varia
 
 
 def format_output(
+    model: str,
+    provider: str,
     result: REPLState,
     user_prompt: str,
     expected_result: str = "",
@@ -61,7 +99,8 @@ def format_output(
         "total_input_tokens": result.get_total_input_tokens(),
         "total_output_tokens": result.get_total_output_tokens(),
         "retries": result.get("retries", 0),
-        "model": f"{os.environ['LLM_PROVIDER']}:{os.environ['LLM_MODEL']}",
+        "model": model,
+        "provider": provider,
     }
 
     # Check if expected result matches
@@ -123,6 +162,8 @@ with open(result_path, "w") as outfile:
 
         # Format output
         output = format_output(
+            model=model,
+            provider=provider,
             result=result,
             user_prompt=user_prompt,
             expected_result=expected_result,
